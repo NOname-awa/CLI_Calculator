@@ -19,6 +19,8 @@ function infixToPostfix(expression) {
                 output.push(stack.pop());
             }
             stack.push(token);
+        } else if (token.endsWith('!')) {
+            output.push(token);
         }
     });
 

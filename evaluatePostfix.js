@@ -10,10 +10,10 @@ function evaluatePostfix(expression) {
         } else if (operators[token]) {
             const args = [];
             for (let i = 0; i < operators[token].arity; i++) {
-                args.push(stack.pop().toNumber());
+                args.push(stack.pop());
             }
             args.reverse();
-            const result = operators[token].fn(...args);
+            const result = operators[token].fn(...args.map(arg => arg.toNumber()));
             stack.push(new Decimal(result));
         }
     });

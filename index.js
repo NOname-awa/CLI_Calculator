@@ -7,14 +7,53 @@ const { setVariable, getVariable, clearVariables } = require('./variables');
 
 let lastResult = null;
 
+const commands = ['exit', 'rad', 'deg', 'ans', 'clear', 'cls'];
+const variables = ['ans'];
+const functions = Object.keys(operators);
+const completions = commands.concat(variables).concat(functions);
+
+function completer(line) {
+    const hits = completions.filter((c) => c.startsWith(line));
+    return [hits.length ? hits : completions, line];
+}
+
+function getNextCharSuggestion(line) {
+    const hits = completions.filter((c) => c.startsWith(line));
+    if (hits.length === 1) {
+        return hits[0].slice(line.length);
+    }
+    return '';
+}
+
 function main() {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
-        prompt: `${getAngleMode()} > `
+        prompt: `${getAngleMode()} > `,
+        completer: completer
     });
 
     rl.prompt();
+
+    rl.input.on('keypress', (c, k) => {
+        setTimeout(() => {
+            const line = rl.line;
+            const suggestion = getNextCharSuggestion(line);
+            readline.clearLine(rl.output, 0);
+            readline.cursorTo(rl.output, 0);
+            rl.output.write(rl.getPrompt() + line);
+
+            // Save current cursor position
+            const cursorPos = rl.getCursorPos();
+
+            if (suggestion) {
+                rl.output.write(`\x1b[90m${suggestion}\x1b[0m`); // Use ANSI escape code for gray color
+            }
+
+            // Restore cursor position
+            readline.cursorTo(rl.output, cursorPos.cols);
+        }, 0);
+    });
 
     rl.on('line', (line) => {
         const expression = line.trim();
