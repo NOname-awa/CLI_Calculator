@@ -1,0 +1,28 @@
+{
+    "name": "calc",
+    "version": "1.0.0",
+    "description": "A simple command line calculator",
+    "main": "index.js",
+    "bin": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "decimal.js": "^10.4.3",
+        "readline-sync": "^1.4.10"
+    },
+    "pkg": {
+        "scripts": [
+            "index.js",
+            "operators.js",
+            "validation.js",
+            "infixToPostfix.js",
+            "evaluatePostfix.js",
+            "variables.js"
+        ]
+    }
+}
