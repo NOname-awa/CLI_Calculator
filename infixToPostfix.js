@@ -1,11 +1,17 @@
 const { operators } = require('./operators');
 
+function tokenize(expression) {
+    const regex = /\s*(=>|[-+*/%^()!]|[A-Za-z]+|[0-9]*\.?[0-9]+)\s*/g;
+    return expression.match(regex).map(token => token.trim());
+}
+
 function infixToPostfix(expression) {
     const output = [];
     const stack = [];
+    const tokens = tokenize(expression);
 
-    expression.split(' ').forEach(token => {
-        if (!isNaN(token) || /^-?\d+(\.\d+)?$/.test(token)) {
+    tokens.forEach(token => {
+        if (!isNaN(token)) {
             output.push(token);
         } else if (token === '(') {
             stack.push(token);
@@ -19,8 +25,6 @@ function infixToPostfix(expression) {
                 output.push(stack.pop());
             }
             stack.push(token);
-        } else if (token.endsWith('!')) {
-            output.push(token);
         }
     });
 
