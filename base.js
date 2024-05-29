@@ -25,8 +25,8 @@ function base(NUM, INTO1, INTO2) {
         } else {
             dec = parseInt(num[0], into1);
         }
-        const result = dec.toString(into2);
-        return (isNeg ? '-' : '') + result.toUpperCase();
+        const result = dec.toString(into2).toUpperCase();
+        return (isNeg ? '-' : '') + result;
     } else {
         return '';
     }

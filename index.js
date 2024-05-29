@@ -119,8 +119,10 @@ function main() {
         } else {
             try {
                 const convertedExpression = expression.split(' ').map(token => {
-                    if (!isNaN(token) || /^[A-F0-9]+(\.[A-F0-9]+)?$/i.test(token)) {
+                    if (/^[A-F0-9]+(\.[A-F0-9]+)?$/.test(token)) {
                         return base(token, inputBase, 10);
+                    } else if (!isNaN(token)) {
+                        return token;
                     }
                     return token;
                 }).join(' ');
