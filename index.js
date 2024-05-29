@@ -4,10 +4,13 @@ const { isValidExpression, isValidVarCommand } = require('./validation');
 const { infixToPostfix } = require('./infixToPostfix');
 const { evaluatePostfix } = require('./evaluatePostfix');
 const { setVariable, getVariable, clearVariables } = require('./variables');
+const { base } = require('./base');
 
 let lastResult = null;
+let inputBase = 10;
+let outputBase = 10;
 
-const commands = ['exit', 'rad', 'deg', 'ans', 'clear', 'cls'];
+const commands = ['exit', 'rad', 'deg', 'ans', 'clear', 'cls', 'base'];
 const variables = ['ans'];
 const functions = Object.keys(operators);
 const completions = commands.concat(variables).concat(functions);
@@ -25,11 +28,19 @@ function getNextCharSuggestion(line) {
     return '';
 }
 
+function formatPrompt() {
+    let prompt = `${getAngleMode()} `;
+    if (inputBase !== 10 || outputBase !== 10) {
+        prompt += `${inputBase}->${outputBase} `;
+    }
+    return prompt + '> ';
+}
+
 function main() {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
-        prompt: `${getAngleMode()} > `,
+        prompt: formatPrompt(),
         completer: completer
     });
 
@@ -57,20 +68,25 @@ function main() {
 
     rl.on('line', (line) => {
         const expression = line.trim();
+        if (expression === '') {
+            rl.prompt();
+            return;
+        }
+
         const lowerCaseExpression = expression.toLowerCase();
         if (lowerCaseExpression === 'exit') {
             rl.close();
         } else if (lowerCaseExpression === 'rad') {
             setAngleMode('radian');
-            rl.setPrompt(`${getAngleMode()} > `);
+            rl.setPrompt(formatPrompt());
             console.log('Switched to radian mode\n');
         } else if (lowerCaseExpression === 'deg') {
             setAngleMode('degree');
-            rl.setPrompt(`${getAngleMode()} > `);
+            rl.setPrompt(formatPrompt());
             console.log('Switched to degree mode\n');
         } else if (lowerCaseExpression === 'ans') {
             if (lastResult !== null) {
-                console.log(`${lastResult}\n`);
+                console.log(`${base(lastResult, 10, outputBase)}\n`);
             } else {
                 console.log('Error: No previous result available\n');
             }
@@ -81,6 +97,12 @@ function main() {
             console.clear();
             rl.prompt();
             return;
+        } else if (expression.startsWith('base ')) {
+            const [_, newInputBase, newOutputBase] = expression.split(' ');
+            inputBase = parseInt(newInputBase, 10);
+            outputBase = parseInt(newOutputBase, 10) || 10;
+            rl.setPrompt(formatPrompt());
+            console.log(`Switched to input base ${inputBase} and output base ${outputBase}\n`);
         } else if (expression.startsWith('var ')) {
             if (isValidVarCommand(expression)) {
                 const [_, varName, value] = expression.split(' ');
@@ -95,23 +117,32 @@ function main() {
                 console.log('Error: Invalid variable command\n');
             }
         } else {
-            const parsedExpression = expression.replace(/\$(\w+)/g, (_, varName) => {
-                try {
-                    return getVariable(varName);
-                } catch (err) {
-                    console.log(`Error: ${err.message}\n`);
-                    return 'NaN';
-                }
-            }).replace(/ans/gi, lastResult !== null ? lastResult : 'NaN');
-            if (isValidExpression(parsedExpression)) {
-                try {
+            try {
+                const convertedExpression = expression.split(' ').map(token => {
+                    if (!isNaN(token) || /^[A-F0-9]+(\.[A-F0-9]+)?$/i.test(token)) {
+                        return base(token, inputBase, 10);
+                    }
+                    return token;
+                }).join(' ');
+
+                const parsedExpression = convertedExpression.replace(/\$(\w+)/g, (_, varName) => {
+                    try {
+                        return getVariable(varName);
+                    } catch (err) {
+                        console.log(`Error: ${err.message}\n`);
+                        return 'NaN';
+                    }
+                }).replace(/ans/gi, lastResult !== null ? lastResult : 'NaN');
+
+                if (isValidExpression(parsedExpression)) {
                     const postfix = infixToPostfix(parsedExpression);
                     lastResult = evaluatePostfix(postfix);
-                    console.log(`${lastResult}\n`);
-                } catch (err) {
+                    const resultInBase = base(lastResult, 10, outputBase);
+                    console.log(`${resultInBase}\n`);
+                } else {
                     console.log('Error: Invalid expression\n');
                 }
-            } else {
+            } catch (err) {
                 console.log('Error: Invalid expression\n');
             }
         }

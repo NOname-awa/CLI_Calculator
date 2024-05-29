@@ -1,12 +1,12 @@
 const { operators } = require('./operators');
 
 function isValidExpression(expression) {
-    const tokens = expression.replace(/\s+/g, '').match(/([0-9]*\.?[0-9]+|[()+\-*/%^!]|[A-Za-z]+)/g);
+    const tokens = expression.replace(/\s+/g, '').match(/([0-9A-F]*\.?[0-9A-F]+|[()+\-*/%^!]|[A-Za-z]+)/g);
     let openParentheses = 0;
     let previousToken = null;
 
     for (let token of tokens) {
-        if (!isNaN(token)) {
+        if (!isNaN(token) || /^[A-F0-9]+(\.[A-F0-9]+)?$/i.test(token)) {
             if (previousToken && !operators[previousToken] && previousToken !== '(') {
                 return false;
             }

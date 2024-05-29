@@ -1,7 +1,7 @@
 const { operators } = require('./operators');
 
 function tokenize(expression) {
-    const regex = /\s*(=>|[-+*/%^()!]|[A-Za-z]+|[0-9]*\.?[0-9]+)\s*/g;
+    const regex = /\s*(=>|[-+*/%^()!]|[A-Za-z]+|[0-9A-Fa-f]+(\.[0-9A-Fa-f]+)?)\s*/g;
     return expression.match(regex).map(token => token.trim());
 }
 
@@ -11,7 +11,7 @@ function infixToPostfix(expression) {
     const tokens = tokenize(expression);
 
     tokens.forEach(token => {
-        if (!isNaN(token)) {
+        if (!isNaN(token) || /^[A-F0-9]+(\.[A-F0-9]+)?$/i.test(token)) {
             output.push(token);
         } else if (token === '(') {
             stack.push(token);
