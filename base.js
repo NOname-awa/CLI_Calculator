@@ -10,7 +10,7 @@ function base(NUM, INTO1, INTO2) {
         isNeg = true;
         num = num.slice(1);
     }
-    if (into1 > 1 && into1 < 37 && into2 > 1 && into2 < 37) {
+    if (isBase(num, into1) && into1 > 1 && into1 < 37 && into2 > 1 && into2 < 37) {
         let dec = 0;
         num = num.toString().split('.');
         if (num.length > 1) {
@@ -28,8 +28,24 @@ function base(NUM, INTO1, INTO2) {
         const result = dec.toString(into2).toUpperCase();
         return (isNeg ? '-' : '') + result;
     } else {
-        return '';
+        return 'Error: Invalid number for the given base';
     }
 }
 
-module.exports = { base };
+function _char0toZ() {
+    return '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+}
+
+function isBase(NUM, BASE) {
+    const base = Number(BASE);
+    if (!Number.isInteger(base)) {
+        return false;
+    }
+    if (base > 1 && base < 37) {
+        const chars = _char0toZ().substring(0, base);
+        return new RegExp(`^[${chars}\\.-]+(?:e[+-]?[${chars}]+)?$`).test(NUM);
+    }
+    return false;
+}
+
+module.exports = { base, isBase, _char0toZ };

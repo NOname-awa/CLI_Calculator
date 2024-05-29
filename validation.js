@@ -1,7 +1,7 @@
 const { operators } = require('./operators');
 
 function isValidExpression(expression) {
-    const tokens = expression.replace(/\s+/g, '').match(/([0-9A-F]*\.?[0-9A-F]+|[()+\-*/%^!]|[a-z]+)/g);
+    const tokens = expression.replace(/\s+/g, '').match(/([0-9A-F]*\.?[0-9A-F]+|[()+\-*/%^!&|^~<<>>]|[a-z]+)/g);
     let openParentheses = 0;
     let previousToken = null;
 
@@ -31,10 +31,6 @@ function isValidExpression(expression) {
             if (previousToken && !operators[previousToken] && previousToken !== '(') {
                 return false;
             }
-        } else if (token.toLowerCase() === 'ans') { // Check for Ans command
-            if (previousToken && !operators[previousToken] && previousToken !== '(') {
-                return false;
-            }
         } else {
             return false;
         }
@@ -50,7 +46,7 @@ function isValidExpression(expression) {
 
 function isValidVarCommand(expression) {
     const tokens = expression.replace(/\s+/g, ' ').split(' ');
-    return tokens.length === 3 && tokens[0].toLowerCase() === 'var' && /^\w+$/.test(tokens[1]) && (/^\$\w+$/.test(tokens[2]) || !isNaN(tokens[2]) || tokens[2].toLowerCase() === 'ans');
+    return tokens.length === 3 && tokens[0].toLowerCase() === 'var' && /^\w+$/.test(tokens[1]) && (/^\$\w+$/.test(tokens[2]) || !isNaN(tokens[2]));
 }
 
 module.exports = { isValidExpression, isValidVarCommand };

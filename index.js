@@ -4,14 +4,14 @@ const { isValidExpression, isValidVarCommand } = require('./validation');
 const { infixToPostfix } = require('./infixToPostfix');
 const { evaluatePostfix } = require('./evaluatePostfix');
 const { setVariable, getVariable, clearVariables } = require('./variables');
-const { base } = require('./base');
+const { base, isBase } = require('./base');
 
 let lastResult = null;
 let inputBase = 10;
 let outputBase = 10;
 
-const commands = ['exit', 'rad', 'deg', 'ans', 'clear', 'cls', 'base'];
-const variables = ['ans'];
+const commands = ['exit', 'rad', 'deg', 'clear', 'cls', 'base'];
+const variables = [];
 const functions = Object.keys(operators);
 const completions = commands.concat(variables).concat(functions);
 
@@ -31,7 +31,7 @@ function getNextCharSuggestion(line) {
 function formatPrompt() {
     let prompt = `${getAngleMode()} `;
     if (inputBase !== 10 || outputBase !== 10) {
-        prompt += `${inputBase}->${outputBase} `;
+        prompt += `[${inputBase} -> ${outputBase}] `;
     }
     return prompt + '> ';
 }
@@ -84,12 +84,6 @@ function main() {
             setAngleMode('degree');
             rl.setPrompt(formatPrompt());
             console.log('Switched to degree mode\n');
-        } else if (lowerCaseExpression === 'ans') {
-            if (lastResult !== null) {
-                console.log(`${base(lastResult, 10, outputBase)}\n`);
-            } else {
-                console.log('Error: No previous result available\n');
-            }
         } else if (lowerCaseExpression === 'clear') {
             clearVariables();
             console.log('All variables cleared\n');
@@ -107,7 +101,7 @@ function main() {
             if (isValidVarCommand(expression)) {
                 const [_, varName, value] = expression.split(' ');
                 try {
-                    const resolvedValue = value.toLowerCase() === 'ans' ? lastResult : (value.startsWith('$') ? getVariable(value.slice(1)) : parseFloat(value));
+                    const resolvedValue = (value.startsWith('$') ? getVariable(value.slice(1)) : parseFloat(value));
                     setVariable(varName, resolvedValue);
                     console.log(`var $${varName} set ${resolvedValue}\n`);
                 } catch (err) {
@@ -119,7 +113,9 @@ function main() {
         } else {
             try {
                 const convertedExpression = expression.split(' ').map(token => {
-                    if (/^[A-F0-9]+(\.[A-F0-9]+)?$/.test(token)) {
+                    if (token === 'ans') {
+                        return lastResult !== null ? lastResult.toString() : '0';
+                    } else if (isBase(token, inputBase)) {
                         return base(token, inputBase, 10);
                     } else if (!isNaN(token)) {
                         return token;
@@ -134,9 +130,9 @@ function main() {
                         console.log(`Error: ${err.message}\n`);
                         return 'NaN';
                     }
-                }).replace(/ans/gi, lastResult !== null ? lastResult : 'NaN');
+                });
 
-                if (isValidExpression(parsedExpression)) {
+                if (isValidExpression(parsedExpression, inputBase)) {
                     const postfix = infixToPostfix(parsedExpression);
                     lastResult = evaluatePostfix(postfix);
                     const resultInBase = base(lastResult, 10, outputBase);
@@ -155,3 +151,4 @@ function main() {
 }
 
 main();
+

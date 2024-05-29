@@ -1,7 +1,7 @@
 const { operators } = require('./operators');
 
 function tokenize(expression) {
-    const regex = /\s*(=>|[-+*/%^()!]|[a-z]+|[0-9A-F]+(\.[0-9A-F]+)?)\s*/g;
+    const regex = /\s*(=>|[-+*/%^()!&|^~<<>>]|[a-z]+|[0-9A-F]+(\.[0-9A-F]+)?)\s*/g;
     return expression.match(regex).map(token => token.trim());
 }
 
